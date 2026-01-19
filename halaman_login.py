@@ -30,3 +30,12 @@ class HalamanLogin:
                 return False
         except:
             return False
+
+    def cek_pesan_error(self):
+        """Fungsi untuk mengambil teks merah error"""
+        try:
+            # Cari tulisan error di layar
+            teks_error = self.driver.find_element(By.CSS_SELECTOR, "h3[data-test='error']").text
+            return teks_error
+        except:
+            return "Tidak ada error"

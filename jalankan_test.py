@@ -1,43 +1,49 @@
 import time
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-
-# Panggil temannya (Import file lain)
 import data_rahasia
 from halaman_login import HalamanLogin
 
-# 1. SETUP DRIVER (Mode Incognito)
+# 1. SETUP
 print("[START] Menyiapkan Robot...")
 opsi = webdriver.ChromeOptions()
 opsi.add_argument("--incognito")
 opsi.add_experimental_option("excludeSwitches", ["enable-automation"])
 driver = webdriver.Chrome(options=opsi)
 
-# 2. MULAI TES (Panggil Class dari file sebelah)
-# Kita serahkan driver ke 'HalamanLogin' untuk dikendalikan
-aksi_login = HalamanLogin(driver)
+aksi = HalamanLogin(driver)
 
 try:
-    # Langkah 1: Buka Web (Ambil URL dari file data)
-    aksi_login.buka_website(data_rahasia.URL_WEB)
-
-    # Langkah 2: Login (Ambil User/Pass dari file data)
-    aksi_login.isi_username(data_rahasia.USERNAME)
-    aksi_login.isi_password(data_rahasia.PASSWORD)
-    aksi_login.klik_login()
-
-    # Langkah 3: Cek Hasil
-    if aksi_login.validasi_login_sukses():
-        # DULU DISINI ADA EMOJI CENTANG, SEKARANG KITA HAPUS
-        print("[SUKSES] TES POM BERHASIL: Login masuk dashboard!")
+    # --- SKENARIO 1: LOGIN GAGAL (NEGATIVE TEST) ---
+    print("\n--- TEST CASE 1: Coba Login Password Ngawur ---")
+    aksi.buka_website(data_rahasia.URL_WEB)
+    aksi.isi_username("standard_user")
+    aksi.isi_password("password_salah_total") # Password ngawur
+    aksi.klik_login()
+    
+    # Validasi Error
+    pesan = aksi.cek_pesan_error()
+    if "Username and password do not match" in pesan:
+        print(f"[SUKSES] Robot mendeteksi error: {pesan}")
     else:
-        print("[GAGAL] TES GAGAL: Tidak masuk dashboard.")
+        print(f"[GAGAL] Robot tidak melihat pesan error. Malah dapet: {pesan}")
+
+    # --- SKENARIO 2: LOGIN SUKSES (POSITIVE TEST) ---
+    print("\n--- TEST CASE 2: Login Password Benar ---")
+    # Refresh halaman dulu biar bersih
+    driver.refresh() 
+    
+    aksi.isi_username(data_rahasia.USERNAME)
+    aksi.isi_password(data_rahasia.PASSWORD)
+    aksi.klik_login()
+    
+    if aksi.validasi_login_sukses():
+        print("[SUKSES] Berhasil masuk dashboard!")
+    else:
+        print("[GAGAL] Gagal login yang benar.")
 
 except Exception as e:
-    # DULU DISINI ADA EMOJI SILANG, SEKARANG KITA HAPUS
     print(f"[ERROR] Terjadi kesalahan: {e}")
 
-# 3. TUTUP
-print("[FINISH] Selesai. Tutup 5 detik lagi.")
+print("\n[FINISH] Semua tes selesai. Tutup 5 detik lagi.")
 time.sleep(5)
 driver.quit()
